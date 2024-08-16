@@ -23,6 +23,7 @@ player_height = 50
 player_x = WIDTH // 2 - player_width // 2
 player_y = HEIGHT - player_height - 10
 player_speed = 5
+player = pygame.Rect(player_x, player_y, player_width, player_height)
 
 # Block properties
 block_width = 50
@@ -66,7 +67,7 @@ def draw_game():
 # Function to show the introduction screen
 def show_intro():
     intro_text = [
-        "Welcome to Falling Blocks!",
+        "Welcome to Fall Blocks!",
         "Move left and right to avoid the red blocks.",
         "Collect green blocks to increase your score.",
         "You have 3 hearts. Lose all, and the game is over.",
@@ -90,8 +91,6 @@ def show_intro():
             if event.type == pygame.KEYDOWN:
                 waiting = False
                 time.sleep(0.2)
-                
-    pygame.event.clear()
 
 # Function to show the ending screen
 def show_ending():
@@ -138,7 +137,6 @@ def show_ending():
 # Main game loop
 def main_game():
     global score, health, blocks, hostile_blocks
-    player = pygame.Rect(player_x, player_y, player_width, player_height)
     clock = pygame.time.Clock()
     score = 0
     health = 3
@@ -187,12 +185,15 @@ def main_game():
         
         draw_game()
         clock.tick(60)
+    
+    return game_over
 
 # Main loop
 while True:
     show_intro()
-    main_game()
-    if not show_ending():
-        break
+    game_over = main_game()
+    if game_over:
+        if not show_ending():
+            break
 
 pygame.quit()
