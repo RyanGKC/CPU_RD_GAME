@@ -26,7 +26,7 @@ player = pygame.Rect(player_x, player_y, player_width, player_height)
 # Block properties
 block_width = 50
 block_height = 50
-block_speed = 1
+block_speed = 3
 
 # Game variables
 score = 0
@@ -89,29 +89,28 @@ def show_intro():
                 
     pygame.event.clear()
 
-# Function to show the ending screen
 def show_ending():
     global scoreboard
     scoreboard.append(score)
     scoreboard = sorted(scoreboard, reverse=True)[:5]
     
-    screen.fill(WHITE)
-    game_over_text = font.render("Game Over", True, BLACK)
-    final_score_text = font.render(f"Final Score: {score}", True, BLACK)
+    screen.fill(BLACK)
+    game_over_text = font.render("Game Over", True, WHITE)
+    final_score_text = font.render(f"Final Score: {score}", True, WHITE)
     screen.blit(game_over_text, (SCREEN_WIDTH // 2 - game_over_text.get_width() // 2, SCREEN_HEIGHT // 4))
     screen.blit(final_score_text, (SCREEN_WIDTH // 2 - final_score_text.get_width() // 2, SCREEN_HEIGHT // 4 + 40))
     
     # Show the scoreboard
-    scoreboard_text = font.render("Top Scores", True, BLACK)
+    scoreboard_text = font.render("Top Scores", True, WHITE)
     screen.blit(scoreboard_text, (SCREEN_WIDTH // 2 - scoreboard_text.get_width() // 2, SCREEN_HEIGHT // 2))
     y_offset = SCREEN_HEIGHT // 2 + 40
     for i, score in enumerate(scoreboard):
-        score_text = font.render(f"{i + 1}. {score}", True, BLACK)
+        score_text = font.render(f"{i + 1}. {score}", True, WHITE)
         screen.blit(score_text, (SCREEN_WIDTH // 2 - score_text.get_width() // 2, y_offset))
         y_offset += 30
     
     # Restart or Quit options
-    restart_text = font.render("Press R to Restart or Q to Quit", True, BLACK)
+    restart_text = font.render("Press R to Restart or Q to Quit", True, WHITE)
     screen.blit(restart_text, (SCREEN_WIDTH // 2 - restart_text.get_width() // 2, SCREEN_HEIGHT - 100))
     
     pygame.display.flip()
@@ -131,13 +130,65 @@ def show_ending():
                     quit()
     return False
 
+def main_game():
+    global score, health, blocks, hostile_blocks
+    clock = pygame.time.Clock()
+    score = 0
+    health = 3
+    blocks = []
+    hostile_blocks = []
+    game_over = False
 
+    while not game_over:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+        
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT] and player.left > 0:
+            player.x -= player_speed
+        if keys[pygame.K_RIGHT] and player.right < SCREEN_WIDTH:
+            player.x += player_speed
+        
+        # Add blocks randomly
+        if random.randint(1, 20) == 1:
+            blocks.append(create_block())
+        
+        if random.randint(1, 50) == 1:
+            hostile_blocks.append(create_block())
+        
+        # Move blocks down and check for collisions
+        for block in blocks[:]:
+            block.y += block_speed
+            if block.colliderect(player):
+                score += 1
+                blocks.remove(block)
+            elif block.y > SCREEN_HEIGHT:
+                blocks.remove(block)
+        
+        for hostile_block in hostile_blocks[:]:
+            hostile_block.y += block_speed
+            if hostile_block.colliderect(player):
+                health -= 1
+                hostile_blocks.remove(hostile_block)
+                if health == 0:
+                    game_over = True
+                    return game_over
+            elif hostile_block.y > SCREEN_HEIGHT:
+                hostile_blocks.remove(hostile_block)
+        
+        draw_game()
+        clock.tick(60)
+    
+    return game_over
 
-run = True
-while run:
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
+# Main loop
+while True:
+    show_intro()
+    game_over = main_game()
+    if game_over:
+        if not show_ending():
+            break
 
 pygame.quit()
