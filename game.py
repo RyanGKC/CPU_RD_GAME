@@ -90,7 +90,7 @@ def show_intro():
     pygame.event.clear()
 
 def show_ending():
-    global scoreboard
+    global scoreboard, score
     scoreboard.append(score)
     scoreboard = sorted(scoreboard, reverse=True)[:5]
     
@@ -129,6 +129,7 @@ def show_ending():
                     pygame.quit()
                     quit()
     return False
+
 
 def main_game():
     global score, health, blocks, hostile_blocks
@@ -174,7 +175,6 @@ def main_game():
                 hostile_blocks.remove(hostile_block)
                 if health == 0:
                     game_over = True
-                    return game_over
             elif hostile_block.y > SCREEN_HEIGHT:
                 hostile_blocks.remove(hostile_block)
         
@@ -184,11 +184,13 @@ def main_game():
     return game_over
 
 # Main loop
-while True:
+run = True
+while run:
     show_intro()
     game_over = main_game()
     if game_over:
-        if not show_ending():
-            break
+        end = show_ending()
+        if not end:
+            run = False
 
 pygame.quit()
