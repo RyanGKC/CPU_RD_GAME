@@ -15,6 +15,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
+ORANGE = (255, 165, 0)
 
 player_width = 50
 player_height = 50
@@ -28,12 +29,20 @@ block_width = 50
 block_height = 50
 block_speed = 3
 
+# Wall properties
+wall_width = 20
+wall_height = SCREEN_HEIGHT * 2  # Twice the length of the screen
+wall_speed = 4
+max_walls = 2  # Only at most 2 walls can appear at a time
+
 # Game variables
 score = 0
 health = 3
 blocks = []
 hostile_blocks = []
+walls = []
 scoreboard = []
+stage = 1  # Start at stage 1
 
 # Fonts
 font = pygame.font.Font(None, 36)
@@ -41,6 +50,10 @@ font = pygame.font.Font(None, 36)
 def create_block():
     x = random.randint(0, SCREEN_WIDTH - block_width)
     return pygame.Rect(x, 0, block_width, block_height)
+
+def create_wall():
+    x = random.randint(0, SCREEN_WIDTH - wall_width)
+    return pygame.Rect(x, -wall_height, wall_width, wall_height)
 
 def draw_game():
     screen.fill(BLACK)
@@ -51,6 +64,9 @@ def draw_game():
 
     for hostile_block in hostile_blocks:
         pygame.draw.rect(screen, RED, hostile_block)
+    
+    for wall in walls:
+        pygame.draw.rect(screen, ORANGE, wall)
     
     score_text = font.render(f"Score: {score}", True, WHITE)
     screen.blit(score_text, (10, 10))
@@ -89,8 +105,27 @@ def show_intro():
                 
     pygame.event.clear()
 
+def show_stage_two_intro():
+    intro_text = [
+        "Stage 2: Increased speed!",
+        "Watch out for falling orange walls.",
+        "These walls act as temporary borders.",
+        "If you're caught below a wall, it's game over!",
+        "Good luck!"
+    ]
+    
+    screen.fill(BLACK)
+    y_offset = SCREEN_HEIGHT // 4
+    for line in intro_text:
+        text = font.render(line, True, WHITE)
+        screen.blit(text, (SCREEN_WIDTH // 2 - text.get_width() // 2, y_offset))
+        y_offset += 40
+    pygame.display.flip()
+    
+    time.sleep(5)  # 5 second delay before starting stage 2
+
 def show_ending():
-    global scoreboard
+    global scoreboard, score
     scoreboard.append(score)
     scoreboard = sorted(scoreboard, reverse=True)[:5]
     
@@ -116,7 +151,6 @@ def show_ending():
     pygame.display.flip()
     
     waiting = True
-
     while waiting:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -132,12 +166,19 @@ def show_ending():
     return False
 
 def main_game():
-    global score, health, blocks, hostile_blocks
+    global score, health, blocks, hostile_blocks, walls, block_speed, wall_speed, stage
     clock = pygame.time.Clock()
+
+    # Reset game state
     score = 0
     health = 3
     blocks = []
     hostile_blocks = []
+    walls = []
+    stage = 1  # Reset to stage 1
+    block_speed = 3
+    wall_speed = 4
+
     game_over = False
 
     while not game_over:
@@ -152,12 +193,25 @@ def main_game():
         if keys[pygame.K_RIGHT] and player.right < SCREEN_WIDTH:
             player.x += player_speed
         
+        # Transition to Stage 2
+        if score >= 50 and stage == 1:
+            stage = 2
+            block_speed = 5  # Increase block speed
+            wall_speed = 6  # Increase wall speed
+            show_stage_two_intro()
+            # Remove all remaining blocks and hostile blocks
+            blocks.clear()
+            hostile_blocks.clear()
+        
         # Add blocks randomly
         if random.randint(1, 20) == 1:
             blocks.append(create_block())
         
         if random.randint(1, 50) == 1:
             hostile_blocks.append(create_block())
+        
+        if stage == 2 and len(walls) < max_walls and random.randint(1, 100) == 1:
+            walls.append(create_wall())
         
         # Move blocks down and check for collisions
         for block in blocks[:]:
@@ -178,10 +232,22 @@ def main_game():
             elif hostile_block.y > SCREEN_HEIGHT:
                 hostile_blocks.remove(hostile_block)
         
+        for wall in walls[:]:
+            wall.y += wall_speed
+
+            # Check if player is caught beneath the wall
+            if wall.colliderect(player):
+                health = 0  # Instant game over if caught below the wall
+                game_over = True
+
+            # Remove walls that move off the screen
+            if wall.y > SCREEN_HEIGHT:
+                walls.remove(wall)
+        
+        # Draw game elements
         draw_game()
         clock.tick(60)
     
-    print("Game Over Triggered")  # Debugging print
     return game_over
 
 # Main loop
@@ -190,7 +256,6 @@ while run:
     show_intro()
     game_over = main_game()
     if game_over:
-        print("Running show_ending()")  # Debugging print
         end = show_ending()
         if not end:
             run = False
