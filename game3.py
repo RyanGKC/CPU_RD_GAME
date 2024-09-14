@@ -275,9 +275,12 @@ def main_game():
         # Add blocks randomly
         if random.randint(1, 20) == 1:
             blocks.append(create_block())
-        
-        if random.randint(1, 50) == 1:
-            hostile_blocks.append(create_hostile_block())
+        if stage <= 2:
+            if random.randint(1, 50) == 1:
+                hostile_blocks.append(create_hostile_block())
+        elif stage == 3:
+            if random.randint(1, 15) == 1:
+                hostile_blocks.append(create_hostile_block())
         
         if stage >= 2 and len(walls) < max_walls and random.randint(1, 100) == 1:
             walls.append(create_wall())
@@ -315,7 +318,7 @@ def main_game():
                 wall.y += speed
 
                 # Check if player is caught beneath the wall
-                if wall.colliderect(player) and player.bottom <= wall.top:
+                if wall.colliderect(player) and player.bottom == wall.top:
                     health = 0  # Instant game over if caught below the wall
                     game_over = True
 
