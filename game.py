@@ -4,7 +4,7 @@ import time
 
 pygame.init()
 
-pygame.mixer.music.load('CPU_RD_GAME/soundtrack.mp3')  # Replace with your music file path
+pygame.mixer.music.load('soundtrack.mp3')  # Replace with your music file path
 pygame.mixer.music.set_volume(0.5)  # Set the volume (0.0 to 1.0)
 pygame.mixer.music.play(-1)  # Play the music in a loop (-1 for infinite loop)
 
@@ -55,7 +55,7 @@ scoreboard = []
 stage = 1  # Start at stage 1
 
 # Health bar images
-heart_image = pygame.image.load('CPU_RD_GAME/health.png')  # Replace with your heart image file path
+heart_image = pygame.image.load('health.png')  # Replace with your heart image file path
 heart_image = pygame.transform.scale(heart_image, (30, 30))  # Resize the heart image to fit
 
 # Fonts
