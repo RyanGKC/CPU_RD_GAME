@@ -31,7 +31,9 @@ block_width = 50
 block_height = 50
 block_speed = 3
 block_speeds = []  # List to store individual block speeds for Stage 3
-hostile_block_speeds = [] # List to store individual block speeds for Stage 3
+
+# Hostile block properties
+hostile_block_speeds = []  # List to store individual hostile block speeds
 
 # Wall properties
 wall_width = 20
@@ -49,7 +51,7 @@ walls = []
 scoreboard = []
 stage = 1  # Start at stage 1
 
-#Health bar images
+# Health bar images
 heart_image = pygame.image.load('CPU_RD_GAME/health.png')  # Replace with your heart image file path
 heart_image = pygame.transform.scale(heart_image, (30, 30))  # Resize the heart image to fit
 
@@ -58,20 +60,13 @@ font = pygame.font.Font(None, 36)
 
 def create_block():
     x = random.randint(0, SCREEN_WIDTH - block_width)
-    if stage == 3:
-        speed = random.randint(3, 8)  # Random speed in Stage 3
-    else:
-        speed = block_speed  # Constant speed in other stages
-    blocks.append(pygame.Rect(x, 0, block_width, block_height))
-    block_speeds.append(speed)  # Add speed to block_speeds list
+    speed = random.randint(3, 8) if stage == 3 else block_speed  # Assign random speed in Stage 3
+    block_speeds.append(speed)
     return pygame.Rect(x, 0, block_width, block_height)
 
 def create_hostile_block():
     x = random.randint(0, SCREEN_WIDTH - block_width)
-    if stage == 3:
-        speed = random.randint(3, 8)  # Random speed in Stage 3
-    else:
-        speed = block_speed  # Constant speed in other stages
+    speed = random.randint(3, 8) if stage == 3 else block_speed  # Assign random speed in Stage 3
     hostile_block_speeds.append(speed)
     return pygame.Rect(x, 0, block_width, block_height)
 
@@ -210,7 +205,7 @@ def show_ending():
     return False
 
 def main_game():
-    global score, health, blocks, hostile_blocks, walls, block_speed, wall_speed, stage, block_speeds, hostile_block_speeds, wall_speeds, player_left_speed, player_right_speed
+    global score, health, blocks, hostile_blocks, walls, block_speed, wall_speed, stage, block_speeds, wall_speeds, hostile_block_speeds, player_left_speed, player_right_speed
     clock = pygame.time.Clock()
 
     # Reset game state
@@ -220,8 +215,8 @@ def main_game():
     hostile_blocks = []
     walls = []
     block_speeds = []  # Reset block speeds for Stage 3
-    hostile_block_speeds = [] # Reset hostile block speeds for Stage 3
     wall_speeds = []  # Reset wall speeds for Stage 3
+    hostile_block_speeds = []  # Reset hostile block speeds for Stage 3
     stage = 1  # Reset to stage 1
     block_speed = 3
     wall_speed = 4
@@ -240,7 +235,7 @@ def main_game():
         player_left_speed = player_speed_x
         player_right_speed = player_speed_x
 
-    # Check for collisions with walls
+        # Check for collisions with walls
         for wall in walls:
             if player.colliderect(wall):
                 if player.right > wall.left and player.left < wall.right and player.bottom > wall.top:
@@ -255,7 +250,6 @@ def main_game():
         if keys[pygame.K_RIGHT] and player.right < SCREEN_WIDTH:
             player.x += player_right_speed
 
-        
         # Transition to Stage 2
         if score >= 10 and stage == 1:
             stage = 2
@@ -275,8 +269,8 @@ def main_game():
             hostile_blocks.clear()
             walls.clear()
             block_speeds.clear()
-            hostile_block_speeds.clear()  
-            wall_speeds.clear()  
+            wall_speeds.clear()
+            hostile_block_speeds.clear()  # Clear hostile block speeds
 
         # Add blocks randomly
         if random.randint(1, 20) == 1:
@@ -287,50 +281,49 @@ def main_game():
         
         if stage >= 2 and len(walls) < max_walls and random.randint(1, 100) == 1:
             walls.append(create_wall())
-
-        # Move blocks down and check for collisions
-        for i in range(len(blocks) - 1, -1, -1):  # Iterate in reverse to avoid skipping elements
-            block = blocks[i]
-            speed = block_speeds[i] if stage == 3 else block_speed
-            block.y += speed
-            if block.colliderect(player):
-                score += 1
-                blocks.pop(i)  # Remove block
-                block_speeds.pop(i)  # Remove associated speed
-            elif block.y > SCREEN_HEIGHT:
-                blocks.pop(i)  # Remove block if it goes off screen
-                block_speeds.pop(i)  # Remove associated speed
-
-        # Hostile blocks
-        for i in range(len(hostile_blocks) - 1, -1, -1):  # Iterate in reverse
-            hostile_block = hostile_blocks[i]
-            speed = hostile_block_speeds[i] if stage == 3 else block_speed
-            hostile_block.y += speed
-            if hostile_block.colliderect(player):
-                health -= 1
-                hostile_blocks.pop(i)  # Remove block
-                hostile_block_speeds.pop(i)  # Remove associated speed
-            if health == 0:
-                game_over = True
-            elif hostile_block.y > SCREEN_HEIGHT:
-                hostile_blocks.pop(i)  # Remove block if it goes off screen
-                hostile_block_speeds.pop(i)  # Remove associated speed
         
-        for i in range(len(walls) - 1, -1, -1):  # Iterate in reverse
-            wall = walls[i]
-            speed = wall_speeds[i] if stage == 3 else wall_speed
-            wall.y += speed
+        # Move blocks down and check for collisions
+        for i, block in enumerate(blocks[:]):
+            if i < len(block_speeds):
+                speed = block_speeds[i] if stage == 3 else block_speed
+                block.y += speed
+                if block.colliderect(player):
+                    score += 1
+                    blocks.remove(block)
+                    block_speeds.pop(i)  # Remove associated speed
+                elif block.y > SCREEN_HEIGHT:
+                    blocks.remove(block)
+                    block_speeds.pop(i)  # Remove associated speed
+        
+        for i, hostile_block in enumerate(hostile_blocks[:]):
+            if i < len(hostile_block_speeds):
+                speed = hostile_block_speeds[i] if stage == 3 else block_speed
+                hostile_block.y += speed
+                if hostile_block.colliderect(player):
+                    health -= 1
+                    hostile_blocks.remove(hostile_block)
+                    hostile_block_speeds.pop(i)  # Remove associated speed
+                    if health == 0:
+                        game_over = True
+                elif hostile_block.y > SCREEN_HEIGHT:
+                    hostile_blocks.remove(hostile_block)
+                    hostile_block_speeds.pop(i)  # Remove associated speed
+        
+        for i, wall in enumerate(walls[:]):
+            if i < len(wall_speeds):
+                speed = wall_speeds[i] if stage == 3 else wall_speed
+                wall.y += speed
 
-            # Check if player is caught beneath the wall
-            if wall.colliderect(player) and player.bottom >= wall.top:
-                health = 0  # Instant game over if caught below the wall
-                game_over = True
+                # Check if player is caught beneath the wall
+                if wall.colliderect(player) and player.bottom <= wall.top:
+                    health = 0  # Instant game over if caught below the wall
+                    game_over = True
 
-            # Remove walls that move off the screen
-            if wall.y > SCREEN_HEIGHT:
-                walls.pop(i)  # Remove wall if it goes off-screen
-                wall_speeds.pop(i)  # Remove associated speed
-
+                # Remove walls that move off the screen
+                if wall.y > SCREEN_HEIGHT:
+                    walls.remove(wall)
+                    wall_speeds.pop(i)  # Remove associated speed
+        
         # Draw game elements
         draw_game()
         clock.tick(60)
@@ -348,3 +341,4 @@ while run:
             run = False
 
 pygame.quit()
+
