@@ -286,7 +286,7 @@ def main_game():
             if random.randint(1, 50) == 1:
                 hostile_blocks.append(create_hostile_block())
         elif stage == 3:
-            if random.randint(1, 15) == 1:
+            if random.randint(1, 20) == 1:
                 hostile_blocks.append(create_hostile_block())
         
         if stage >= 2 and len(walls) < max_walls and random.randint(1, 100) == 1:
