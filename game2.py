@@ -21,7 +21,9 @@ player_width = 50
 player_height = 50
 player_x = SCREEN_WIDTH // 2 - player_width // 2
 player_y = SCREEN_HEIGHT - player_height - 10
-player_speed = 5
+player_speed_x = 5  # Player's horizontal speed
+player_left_speed = player_speed_x  # Speed when moving left
+player_right_speed = player_speed_x  # Speed when moving right
 player = pygame.Rect(player_x, player_y, player_width, player_height)
 
 # Block properties
@@ -45,6 +47,10 @@ hostile_blocks = []
 walls = []
 scoreboard = []
 stage = 1  # Start at stage 1
+
+#Health bar images
+heart_image = pygame.image.load('CPU_RD_GAME/health.png')  # Replace with your heart image file path
+heart_image = pygame.transform.scale(heart_image, (30, 30))  # Resize the heart image to fit
 
 # Fonts
 font = pygame.font.Font(None, 36)
@@ -83,8 +89,8 @@ def draw_game():
     score_text = font.render(f"Score: {score}", True, WHITE)
     screen.blit(score_text, (10, 10))
     
-    health_text = font.render(f"Health: {'♥' * health}", True, RED)
-    screen.blit(health_text, (SCREEN_WIDTH - 150, 10))
+    for i in range(health):
+        screen.blit(heart_image, (SCREEN_WIDTH - 150 + i * 40, 10))  # Display hearts based on health
     
     pygame.display.flip()
 
@@ -196,10 +202,11 @@ def show_ending():
     return False
 
 def main_game():
-    global score, health, blocks, hostile_blocks, walls, block_speed, wall_speed, stage, block_speeds, wall_speeds
+    global score, health, blocks, hostile_blocks, walls, block_speed, wall_speed, stage, block_speeds, wall_speeds, player_left_speed, player_right_speed
     clock = pygame.time.Clock()
 
     # Reset game state
+# Reset game state
     score = 0
     health = 3
     blocks = []
@@ -220,10 +227,26 @@ def main_game():
                 quit()
         
         keys = pygame.key.get_pressed()
+
+        # Reset player speed for movement checks
+        player_left_speed = player_speed_x
+        player_right_speed = player_speed_x
+
+    # Check for collisions with walls
+        for wall in walls:
+            if player.colliderect(wall):
+                if player.right > wall.left and player.left < wall.right and player.bottom > wall.top:
+                    if player.right <= wall.right:  # Colliding with the left side of the wall
+                        player_right_speed = 0
+                    if player.left >= wall.left:  # Colliding with the right side of the wall
+                        player_left_speed = 0
+
+        # Movement: Only move if not blocked by walls
         if keys[pygame.K_LEFT] and player.left > 0:
-            player.x -= player_speed
+            player.x -= player_left_speed
         if keys[pygame.K_RIGHT] and player.right < SCREEN_WIDTH:
-            player.x += player_speed
+            player.x += player_right_speed
+
         
         # Transition to Stage 2
         if score >= 50 and stage == 1:
@@ -312,5 +335,3 @@ while run:
             run = False
 
 pygame.quit()
-
-
