@@ -40,7 +40,6 @@ wall_width = 51
 wall_height = SCREEN_HEIGHT * 2  # Twice the length of the screen
 wall_speed = 5
 wall_speeds = []  # List to store individual wall speeds for Stage 3
-max_walls = 2  # Only at most 2 walls can appear at a time
 
 # Game variables
 score = 0
@@ -246,15 +245,16 @@ def main_game():
                         player_left_speed = 0
 
         # Movement: Only move if not blocked by walls
-        if keys[pygame.K_LEFT] and player.left > 0:
+        if (keys[pygame.K_a] or keys[pygame.K_LEFT]) and player.left > 0:
             player.x -= player_left_speed
-        if keys[pygame.K_RIGHT] and player.right < SCREEN_WIDTH:
+        if (keys[pygame.K_d] or keys[pygame.K_RIGHT]) and player.right < SCREEN_WIDTH:
             player.x += player_right_speed
-
+        
         # Transition to Stage 2
         if score >= 10 and stage == 1:
             stage = 2
             block_speed = 5  # Increase block speed
+            max_walls = 2
             show_stage_two_intro()
             # Remove all remaining blocks and hostile blocks
             blocks.clear()
