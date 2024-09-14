@@ -36,9 +36,9 @@ block_speeds = []  # List to store individual block speeds for Stage 3
 hostile_block_speeds = []  # List to store individual hostile block speeds
 
 # Wall properties
-wall_width = 20
+wall_width = 51
 wall_height = SCREEN_HEIGHT * 2  # Twice the length of the screen
-wall_speed = 4
+wall_speed = 5
 wall_speeds = []  # List to store individual wall speeds for Stage 3
 max_walls = 2  # Only at most 2 walls can appear at a time
 
@@ -72,7 +72,7 @@ def create_hostile_block():
 
 def create_wall():
     x = random.randint(0, SCREEN_WIDTH - wall_width)
-    speed = random.randint(3, 8) if stage == 3 else wall_speed  # Assign random speed in Stage 3
+    speed = wall_speed
     wall_speeds.append(speed)
     return pygame.Rect(x, -wall_height, wall_width, wall_height)
 
@@ -131,7 +131,7 @@ def show_stage_two_intro():
         "Stage 2: Increased speed!",
         "Watch out for falling orange walls.",
         "These walls act as temporary borders.",
-        "If you're caught below a wall, it's game over!",
+        "You won't be able to move past even if you overlap.",
         "Good luck!"
     ]
     
@@ -148,7 +148,8 @@ def show_stage_two_intro():
 def show_stage_three_intro():
     intro_text = [
         "Stage 3: Random block and wall speeds!",
-        "Blocks and walls will now fall at varying speeds.",
+        "Blocks will now fall at varying speeds.",
+        "Hostile blocks have been increased.",
         "Stay sharp and keep collecting those green blocks!",
         "Good luck!"
     ]
@@ -254,7 +255,6 @@ def main_game():
         if score >= 10 and stage == 1:
             stage = 2
             block_speed = 5  # Increase block speed
-            wall_speed = 6  # Increase wall speed
             show_stage_two_intro()
             # Remove all remaining blocks and hostile blocks
             blocks.clear()
@@ -263,6 +263,8 @@ def main_game():
         # Transition to Stage 3
         if score >= 20 and stage == 2:
             stage = 3
+            wall_speed = 2
+            max_walls = 4
             show_stage_three_intro()
             # Remove all remaining blocks, hostile blocks, and clear speeds
             blocks.clear()
@@ -273,8 +275,13 @@ def main_game():
             hostile_block_speeds.clear()  # Clear hostile block speeds
 
         # Add blocks randomly
-        if random.randint(1, 20) == 1:
-            blocks.append(create_block())
+        if stage <= 2:
+            if random.randint(1, 20) == 1:
+                blocks.append(create_block())
+        elif stage == 3:
+            if random.randint(1, 25) == 1:
+                blocks.append(create_block())
+
         if stage <= 2:
             if random.randint(1, 50) == 1:
                 hostile_blocks.append(create_hostile_block())
@@ -316,11 +323,6 @@ def main_game():
             if i < len(wall_speeds):
                 speed = wall_speeds[i] if stage == 3 else wall_speed
                 wall.y += speed
-
-                # Check if player is caught beneath the wall
-                if wall.colliderect(player) and player.bottom == wall.top:
-                    health = 0  # Instant game over if caught below the wall
-                    game_over = True
 
                 # Remove walls that move off the screen
                 if wall.y > SCREEN_HEIGHT:
