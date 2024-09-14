@@ -4,6 +4,10 @@ import time
 
 pygame.init()
 
+pygame.mixer.music.load('CPU_RD_GAME/soundtrack.mp3')  # Replace with your music file path
+pygame.mixer.music.set_volume(0.5)  # Set the volume (0.0 to 1.0)
+pygame.mixer.music.play(-1)  # Play the music in a loop (-1 for infinite loop)
+
 # Screen Dimensions
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
@@ -251,7 +255,7 @@ def main_game():
             player.x += player_right_speed
         
         # Transition to Stage 2
-        if score >= 10 and stage == 1:
+        if score >= 50 and stage == 1:
             stage = 2
             block_speed = 5  # Increase block speed
             max_walls = 2
@@ -261,7 +265,7 @@ def main_game():
             hostile_blocks.clear()
         
         # Transition to Stage 3
-        if score >= 20 and stage == 2:
+        if score >= 100 and stage == 2:
             stage = 3
             wall_speed = 2
             max_walls = 4
